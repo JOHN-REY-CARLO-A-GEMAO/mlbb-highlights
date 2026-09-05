@@ -1,17 +1,70 @@
 # MLBB Highlight Kit — Remotion
 
-Seven composable overlay components for Mobile Legends highlight edits.
-1080×1920 @ 30fps (vertical / TikTok / Reels / Shorts).
+A hands-off Mobile Legends highlight editor built on Remotion. Drop a raw gameplay
+video into `input/`, run one command, and get a vertical 1080×1920 edit in `out/`.
+The generated composition keeps the footage, audio, intro card, motion treatment,
+kill counter, captions, and event overlays in one data-driven plan.
+
+## Zero-touch workflow
 
 ```bash
-cd mlbb-highlights
 npm install
-npm run dev            # Remotion Studio on :3000
-npm run render HighlightDemo out/demo.mp4
+# paste any .mp4, .mov, .m4v, .webm, .mkv, or .avi into input/
+npm run edit             # writes out/mlbb-highlight.mp4
 ```
 
-`preview/HighlightDemo.mp4` is a pre-rendered 20s demo of all seven working together
-over placeholder footage.
+To preview the same generated plan in Remotion Studio:
+
+```bash
+npm run studio            # Studio on :3000, with the upload already loaded
+```
+
+The ingest script automatically:
+
+1. picks the newest video in `input/` (or the repository root),
+2. copies it to `public/raw/` so Remotion can render it,
+3. reads its exact duration and frame rate with Remotion's bundled `ffprobe`,
+4. creates `.agentic/current-props.json`, and
+5. renders the `AgenticHighlight` composition without requiring any manual timeline work.
+
+The bundled probe means a system FFmpeg install is not required. If a codec is unusual
+or metadata cannot be read, the fallback duration is 60 seconds; use
+`npm run edit -- --duration 37.4` for a one-off override.
+
+### Optional: give the editor an AI-ready beat sheet
+
+The visual edit does not need a sidecar. If you already have event timestamps or a
+transcript, put a JSON file next to the video with the same basename. For example,
+`input/ranked-game.json` is picked up automatically for `input/ranked-game.mp4`:
+
+```json
+{
+  "playerName": "ONIC.KAIRI",
+  "event": "RANKED GAMEPLAY",
+  "matchup": "MYTHIC RANKED",
+  "channelName": "@yourhandle",
+  "accentColor": "#3FA9FF",
+  "events": [
+    {"time": 12.4, "kind": "kill"},
+    {"time": 14.1, "kind": "streak", "tier": "DOUBLE"},
+    {"time": 18.7, "kind": "callout", "label": "OUTPLAY", "tone": "yellow"},
+    {"time": 24.0, "kind": "streak", "tier": "SAVAGE"}
+  ],
+  "transcript": [
+    {"text": "watch this", "start": 11.9},
+    {"text": "savage", "start": 23.8, "emphasis": "red"}
+  ]
+}
+```
+
+That sidecar is intentionally a small contract: a local script, Whisper/Deepgram
+workflow, or future vision agent can write it without changing the Remotion scene.
+The renderer validates and sorts the data, so a messy upload cannot break a render.
+For a different file, use `npm run edit -- --input input/other-match.mp4`.
+
+`preview/HighlightDemo.mp4` remains the original component showcase over placeholder
+footage. The new `AgenticHighlight` composition is the one used by the zero-touch
+workflow.
 
 ---
 
@@ -19,6 +72,7 @@ over placeholder footage.
 
 | ID | What it shows |
 |---|---|
+| `AgenticHighlight` | Upload-driven vertical edit; duration and props come from `.agentic/current-props.json` |
 | `HighlightDemo` | All 7 components cut together, 20s |
 | `KillStreak` | One tier, editable in the props panel |
 | `KillStreakAllTiers` | DOUBLE → TRIPLE → MANIAC → SAVAGE back to back |
@@ -209,7 +263,13 @@ Duration helpers (`killStreakDurationInFrames`, `statusCalloutDurationInFrames`,
 ## Files
 
 ```
+input/                            drop folder for raw gameplay
+public/raw/                       Remotion-served copy of the current upload
+scripts/agentic-edit.mjs          ingest, plan, studio, and render automation
 src/
+  agentic/
+    AgenticHighlight.tsx          hands-off vertical composition
+    types.ts                      event/transcript plan contract
   theme.ts                       fonts, palette, stroke + text-fitting helpers
   Root.tsx                       composition registry
   components/

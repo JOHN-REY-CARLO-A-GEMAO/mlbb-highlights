@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "remotion studio",
-    "studio": "remotion studio",
+    "dev": "node scripts/agentic-edit.mjs --studio",
+    "studio": "node scripts/agentic-edit.mjs --studio",
+    "edit": "node scripts/agentic-edit.mjs",
+    "plan": "node scripts/agentic-edit.mjs --plan-only",
     "render": "remotion render",
     "upgrade": "remotion upgrade"
   },

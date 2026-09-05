@@ -16,6 +16,11 @@ import {
 	StatusCallout,
 	statusCalloutDurationInFrames,
 } from './components/StatusCallout';
+import {AgenticHighlight} from './agentic/AgenticHighlight';
+import {
+	DEFAULT_AGENTIC_PROPS,
+	type AgenticHighlightProps,
+} from './agentic/types';
 import {DEMO_ROUTE, DEMO_TRANSCRIPT} from './demo/demoData';
 import {HighlightDemo} from './demo/HighlightDemo';
 import {MockGameplay, MockReactionCam} from './demo/MockFootage';
@@ -23,6 +28,8 @@ import {MockGameplay, MockReactionCam} from './demo/MockFootage';
 const W = 1080;
 const H = 1920;
 const FPS = 30;
+const numberOrDefault = (value: number | undefined, fallback: number) =>
+	Number.isFinite(value) ? (value as number) : fallback;
 
 /** Wraps a single overlay on top of placeholder gameplay for solo previewing. */
 const OnGameplay: React.FC<{children: React.ReactNode}> = ({children}) => (
@@ -35,6 +42,27 @@ const OnGameplay: React.FC<{children: React.ReactNode}> = ({children}) => (
 export const RemotionRoot: React.FC = () => {
 	return (
 		<>
+			{/* ============ hands-off upload cut ============ */}
+			<Composition
+				id="AgenticHighlight"
+				component={AgenticHighlight}
+				durationInFrames={DEFAULT_AGENTIC_PROPS.durationInFrames}
+				fps={FPS}
+				width={W}
+				height={H}
+				defaultProps={DEFAULT_AGENTIC_PROPS as AgenticHighlightProps}
+				calculateMetadata={({props}) => {
+					const agenticProps = props as unknown as AgenticHighlightProps;
+					return {
+						durationInFrames: Math.max(
+							1,
+							numberOrDefault(agenticProps.durationInFrames, DEFAULT_AGENTIC_PROPS.durationInFrames),
+						),
+						fps: numberOrDefault(agenticProps.fps, FPS),
+					};
+				}}
+			/>
+
 			{/* ============ full cut ============ */}
 			<Composition
 				id="HighlightDemo"
