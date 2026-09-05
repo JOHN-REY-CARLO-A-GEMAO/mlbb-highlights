@@ -2,3 +2,12 @@ node_modules
 out
 .remotion
 *.log
+
+# Drop gameplay here; the ingest script copies it into public/raw when needed.
+input/*
+!input/.gitkeep
+public/raw/*
+!public/raw/.gitkeep
+
+# Generated plan and props are machine-local and can contain upload metadata.
+.agentic/
